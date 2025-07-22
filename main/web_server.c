@@ -14,6 +14,8 @@
 
 static const char *TAG = "WEB";
 
+int previousspeed = 50;
+
 void wifi_init_softap(void) {
     ESP_LOGI(TAG, "Initializing Wi-Fi AP...");
     ESP_ERROR_CHECK(esp_netif_init());
@@ -52,8 +54,14 @@ esp_err_t move_start_handler(httpd_req_t *req) {
         if (httpd_query_key_value(query, "dir", dir, sizeof(dir)) == ESP_OK) {
             if (strcmp(dir, "forward") == 0) set_motor_direction(true, true);
             else if (strcmp(dir, "backward") == 0) set_motor_direction(false, false);
-            else if (strcmp(dir, "left") == 0) set_motor_direction(false, true);
-            else if (strcmp(dir, "right") == 0) set_motor_direction(true, false);
+            else if (strcmp(dir, "left") == 0) {
+		    set_motor_direction(true, true);
+		    set_motor_speed(LEDC_CHANNEL_0, 0);
+	    }
+            else if (strcmp(dir, "right") == 0) {
+		    set_motor_direction(true, true);
+		    set_motor_speed(LEDC_CHANNEL_1, 0);
+	    }
         }
     }
     return httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
@@ -62,6 +70,9 @@ esp_err_t move_start_handler(httpd_req_t *req) {
 esp_err_t move_stop_handler(httpd_req_t *req) {
     ESP_LOGI(TAG, "HTTP: move/stop");
     stop_motors();
+    set_motor_speed(LEDC_CHANNEL_0, previousspeed);
+    set_motor_speed(LEDC_CHANNEL_1, previousspeed);
+
     return httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
 }
 
@@ -71,6 +82,7 @@ esp_err_t speed_handler(httpd_req_t *req) {
     if (httpd_req_get_url_query_str(req, buf, sizeof(buf)) == ESP_OK) {
         if (httpd_query_key_value(buf, "val", val, sizeof(val)) == ESP_OK) {
             int spd = atoi(val);
+	    previousspeed = spd;
             set_motor_speed(LEDC_CHANNEL_0, spd);
             set_motor_speed(LEDC_CHANNEL_1, spd);
         }
