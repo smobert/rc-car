@@ -25,6 +25,14 @@ def set_speed(val):
     except Exception as e:
         print("Error:", e)
 
+def set_servo(val):
+    try:
+        pos = int(float(val))
+        requests.post(f"http://{ESP_IP}/servo?val={pos}")
+        print(f"Set servo: {pos}")
+    except Exception as e:
+        print("Error:", e)
+
 root = tk.Tk()
 root.title("ESP32 RC Car Control")
 
@@ -47,6 +55,12 @@ tk.Label(root, text="Speed").grid(row=0, column=1)
 speed_slider = tk.Scale(root, from_=0, to=100, orient='vertical', command=set_speed)
 speed_slider.set(50)
 speed_slider.grid(row=1, column=1, rowspan=3)
+
+# Speed Control Slider
+tk.Label(root, text="Servo").grid(row=0, column=1)
+servo_slider = tk.Scale(root, from_=0, to=180, orient='horizontal', command=set_servo)
+servo_slider.set(90)
+servo_slider.grid(row=1, column=2, columnspan=3)
 
 root.mainloop()
 
