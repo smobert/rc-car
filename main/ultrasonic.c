@@ -6,8 +6,8 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 
-#define TRIGGER_GPIO 	GPIO_NUM_4
-#define ECHO_GPIO    	GPIO_NUM_16
+#define TRIGGER_GPIO 	GPIO_NUM_16
+#define ECHO_GPIO    	GPIO_NUM_4
 
 #define HC_SR04_TIMEOUT_US 25000 // 25ms timeout (~4m max range)
 
