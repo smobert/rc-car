@@ -33,6 +33,17 @@ def set_servo(val):
     except Exception as e:
         print("Error:", e)
 
+def update_sensor_data():
+    try:
+        response = requests.get("http://192.168.4.1/sensor")  # Replace with ESP32 IP
+        data = response.json()  # Assume ESP32 sends JSON like 
+
+        sensor_label.config(text=f"Dist: {data['distance']}cm")
+    except Exception as e:
+        print("Sensor update failed:", e)
+    root.after(100, update_sensor_data)  # poll every 1s
+
+
 root = tk.Tk()
 root.title("ESP32 RC Car Control")
 
@@ -61,6 +72,13 @@ tk.Label(root, text="Servo").grid(row=0, column=1)
 servo_slider = tk.Scale(root, from_=0, to=180, orient='horizontal', command=set_servo)
 servo_slider.set(90)
 servo_slider.grid(row=1, column=2, columnspan=3)
+
+# Sensor Data Label
+sensor_label = tk.Label(root, text="Dist: -- cm", font=("Arial", 12), fg="blue")
+sensor_label.grid(row=3, column=2, rowspan=3, padx=20)
+
+# Start polling for sensor data
+update_sensor_data()
 
 root.mainloop()
 

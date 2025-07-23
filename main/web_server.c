@@ -1,6 +1,7 @@
 #include "web_server.h"
 #include "motor_control.h"
 #include "servo_control.h"
+#include "ultrasonic.h"
 #include "esp_wifi.h"
 #include "esp_event.h"
 #include "esp_log.h"
@@ -105,6 +106,20 @@ esp_err_t servo_handler(httpd_req_t *req) {
     return httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
 }
 
+esp_err_t sensor_handler(httpd_req_t *req) {
+	ESP_LOGI(TAG, "HTTP: /sensor");
+
+	int distance = (int)ultrasonic_measure();
+	
+	char resp[128];
+	snprintf(resp, sizeof(resp), "{\"distance\":%d}", distance);
+
+	httpd_resp_set_type(req, "application/json");
+
+	ESP_LOGI(TAG, "Updating sensor data");
+	return httpd_resp_send(req, resp, HTTPD_RESP_USE_STRLEN);
+}
+
 // -- Start Server --
 void start_webserver() {
     wifi_init_softap();
@@ -117,12 +132,14 @@ void start_webserver() {
     httpd_uri_t mstop = { .uri = "/move/stop", .method = HTTP_POST, .handler = move_stop_handler };
     httpd_uri_t speed = { .uri = "/speed", .method = HTTP_POST, .handler = speed_handler };
     httpd_uri_t servo = { .uri = "/servo", .method = HTTP_POST, .handler = servo_handler };
+    httpd_uri_t sensor = { .uri = "/sensor", .method = HTTP_GET, .handler = sensor_handler };
 
     //httpd_register_uri_handler(server, &root);
     httpd_register_uri_handler(server, &mstart);
     httpd_register_uri_handler(server, &mstop);
     httpd_register_uri_handler(server, &speed);
     httpd_register_uri_handler(server, &servo);
+    httpd_register_uri_handler(server, &sensor);
 
     ESP_LOGI(TAG, "HTTP server running");
 }
